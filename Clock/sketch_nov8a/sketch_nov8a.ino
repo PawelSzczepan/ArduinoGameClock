@@ -6,9 +6,12 @@
 #define BUTTON_START D3
 #define BUTTON_UP D10
 #define BUTTON_DOWN D4
+#define BUZZER D1     //!TEMPORARY once the buzzer is connected change this to proper port
 
 #define BLINKTIME 500
 #define BLINKSTOPTIME 100
+
+#define MIN_STEP_TIME 10 //in ms
 
 MAX7219 max7219;
 
@@ -31,8 +34,7 @@ void setup() {
   pinMode(BUTTON_START, INPUT);
   pinMode(BUTTON_UP, INPUT);
   pinMode(BUTTON_DOWN, INPUT);
-  //pinMode(BUZZER, OUTPUT);
-  //digitalWrite(BUZZER, 1);
+  pinMode(BUZZER, OUTPUT);
   last_mills = millis();
   mode = COUNTDOWN;
   countdown_reset_time = 30.0f;
@@ -68,11 +70,11 @@ void adjust_start_time(float change)
   countdown_reset_time += change;
   if(countdown_reset_time < 1.0f)
   {
-    countdown_reset_time = 1.0f;
+    countdown_reset_time = 9999.0f;
   }
   if(countdown_reset_time > 9999.0f)
   {
-    countdown_reset_time = 9999.0f;
+    countdown_reset_time = 1.0f;
   }
 }
 
@@ -124,7 +126,7 @@ void timeout(long deltat)
     }
     if(timeout_blink)
     {
-      
+      digitalWrite(BUZZER, HIGH);
       if(mode == TIMEOUT)
       {
         max7219.Clear();
@@ -137,6 +139,7 @@ void timeout(long deltat)
     }
     else
     {
+      digitalWrite(BUZZER, LOW);
       max7219.Clear();
     }
 }
@@ -274,7 +277,7 @@ void checkbuttons(long deltat)
 void loop() {
   long new_mills = millis();
   int delta = new_mills - last_mills;
-  if(delta >= 10)
+  if(delta >= MIN_STEP_TIME)
   {
     last_mills = new_mills;
     checkbuttons(delta);
